@@ -13,6 +13,8 @@ app.use(bodyParser.urlencoded({ extended: false, limit: '10mb', parameterLimit: 
 app.use('/api/external/monitoring', require('./api/routes/external'));
 app.use('/api/internal', require('./api/routes/internal'));
 
+app.get("/api/external/monitoring", (req, res) => res.send("Express on Vercel"));
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}...`);
 });
