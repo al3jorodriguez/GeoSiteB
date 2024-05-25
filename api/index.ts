@@ -4,6 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
+export const maxDuration = 15; // This function can run for a maximum of 5 seconds
+
 
 app.use(cors());
 
