@@ -3,9 +3,18 @@ const router = express.Router();
 const cache = require('memory-cache');
 const { parse } = require('papaparse');
 
-const { getList, getDetailsById } = require('../services/external');
+const { getList, getDetailsById, getXmlInfo } = require('../services/external');
 
 const CACHE_DURATION = +process.env.CACHE_DURATION;
+
+router.get('/xml', async(req, res) => {
+    try {
+        const xml = await getXmlInfo();
+        return res.status(200).json(xml);
+    } catch (error) {
+        return res.status(500).json(error.message);
+    }
+});
 
 router.get('/list', async(req, res) => {
     try {
@@ -16,7 +25,7 @@ router.get('/list', async(req, res) => {
             return res.status(200).json(cachedResponse);
         }
 
-        const list = await getList();
+        const list = await getList(['Title']);
         cache.put(key, list, CACHE_DURATION);
 
         return res.status(200).json(list);
@@ -28,17 +37,13 @@ router.get('/list', async(req, res) => {
 
 router.get('/details/:id', async(req, res) => {
     try {
-        const details = await getDetailsById(req.params.id);
-        return res.status(200).json(details);
+        const data = await getDetailsById(req.params.id);
+        
+        return res.status(200).json(data);
     } catch (error) {
         console.log(error);
         return res.status(500).json(error.message);
     }
 });
-
-//         const { data } = parse(response.data, {
-//             header: true,
-// 			skipEmptyLines: true,
-//         });
 
 module.exports = router;
