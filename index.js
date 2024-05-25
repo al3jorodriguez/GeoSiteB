@@ -16,3 +16,5 @@ app.use('/api/internal', require('./api/routes/internal'));
 app.listen(port, () => {
   console.log(`Server is running on port ${port}...`);
 });
+
+module.exports = app;
