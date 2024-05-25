@@ -26,7 +26,7 @@ router.get('/list', async(req, res) => {
         }
 
         const list = await getList(['Title']);
-        cache.put(key, list, CACHE_DURATION);
+        cache.put(key, list, 3600000);
 
         return res.status(200).json(list);
     } catch (error) {
