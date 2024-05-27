@@ -7,6 +7,7 @@ router.get('/menu', async (req, res) => {
             {
                 id: 'about',
                 label: 'About',
+                route: '/about',
                 children: [
                     {
                         label: 'Our Vision',
@@ -23,6 +24,7 @@ router.get('/menu', async (req, res) => {
             {
                 id: 'our-organization',
                 label: 'Our Organization',
+                route: '/our-organization',
                 children: [
                     {
                         route: '/our-organization',
@@ -44,6 +46,7 @@ router.get('/menu', async (req, res) => {
             {
                 id: 'activities',
                 label: 'Activities',
+                route: '/activities',
                 children: [
                     {
                         route: '/activities',
@@ -60,6 +63,7 @@ router.get('/menu', async (req, res) => {
             {
                 id: 'resources',
                 label: 'Resources',
+                route: '/resources',
                 children: [
                     {
                         route: '/resources',

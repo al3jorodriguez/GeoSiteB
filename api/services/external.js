@@ -23,16 +23,19 @@ const getDataFromUrl = async (url) => {
 
 const getInfo = async(url, txtKeys) => {
     const descriptionKeys = [
-        'Climate:',
-        'Geographic location:',
-        'Human activities:',
-        'Level of protection:',
-        'Levels of protection:',
-        'Ecosystem and habitats:',
-        'Marine ecosystem type and habitat:',
-        'Sampling strategy:',
-        'Typology:',
+        'Climate',
+        'Geographic location',
+        'Geographic Location',
+        'Human activities',
+        'Level of protection',
+        'Levels of protection',
+        'Ecosystem and habitats',
+        'Marine ecosystem type and habitat',
+        'Sampling strategy',
+        'Typology',
     ];
+    const descriptionKeysText = descriptionKeys.map(d=> `${d}:`);
+
     const textContent = await getDataFromUrl(url);
 
     const lines = textContent.split('\n').filter(line => line.trim() !== '');
@@ -46,13 +49,14 @@ const getInfo = async(url, txtKeys) => {
          * not all elements have the same structure in the description.
          * So, It's necessary to define one.
          */
+        
         if (value.length && txtKeys.includes(key)) {
             if (key === 'Description') {
                 const content = value.join(": ");
-                data[key] = extractInfo(content, descriptionKeys);
+                data[key] = extractInfo(content, descriptionKeysText);
             } else {
-                if (descriptionKeys.includes(`${key}:`)) {
-                    const result = extractInfo(value.join(": "), descriptionKeys);
+                if (descriptionKeysText.includes(`${key}:`)) {
+                    const result = extractInfo(value.join(": "), descriptionKeysText);
                     data['Description'] = {
                         ...data['Description'],
                         ...result
@@ -181,6 +185,8 @@ const getDetailsById = async(id) => {
         /**
          * search for keys outside the description
          */
+        'Geographic Location',
+        'Geographic location',
         'Marine ecosystem type and habitat',
         'Human activities',
         'Level of protection',
