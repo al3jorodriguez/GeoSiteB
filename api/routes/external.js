@@ -5,7 +5,7 @@ const { parse } = require('papaparse');
 
 const { getList, getDetailsById, getXmlInfo } = require('../services/external');
 
-const CACHE_DURATION = +process.env.CACHE_DURATION;
+const CACHE_DURATION = 3600000;
 
 router.get('/xml', async(req, res) => {
     try {
@@ -26,7 +26,7 @@ router.get('/list', async(req, res) => {
         }
 
         const list = await getList(['Title']);
-        cache.put(key, list, 3600000);
+        cache.put(key, list, CACHE_DURATION);
 
         return res.status(200).json(list);
     } catch (error) {
