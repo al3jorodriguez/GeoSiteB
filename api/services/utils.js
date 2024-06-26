@@ -137,69 +137,20 @@ const parseCsvToJSON = async(resourceUrl) => {
     return data;
 }
 
-const parseToChartData = async(data, fields) => {
-    const config = {
-        type: 'radar',
-        data: {
-            labels: [],
-            datasets: [],
-        },
-    };
-    const dataset = {
-        label: `${data.Year} Information`,
-        data: [],
-        fill: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.26)',
-        borderColor: '#C8AD84',
-        pointBackgroundColor: '#FFFFFF',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: '#fff'
-    };
-    for (let i in data) {
-        if (fields.includes(i)) {
-            config.data.labels.push(i.replace('_index', ''));
-            dataset.data.push(parseFloat(data[i]));
-        }
-    }
-    config.data.datasets.push(dataset);
-    return config
+const getDataListSeries = async(resourceUrl) => {
+    return await parseCsvToJSON(resourceUrl);
 }
 
-const getMostRecentData = async(resourceUrl, prefix) => {
-    const dataList = await parseCsvToJSON(resourceUrl);
-    const data = getMostRecentYearData(dataList, prefix);
-    if (data) {
-        return parseToChartData(data, getTimeSeriesFields(prefix))
-    }
-    return data;
-}
-
-const getTimeSeriesFields = (prefix) => {
-    const fields = {
-        fw: [
-            'Carnivora_index', 
-            'Chiroptera_index', 
-            'Eulipotyphla_index', 
-            'Primate_index',
-            'Rodentia_index',
-            'Artiodactyla_index'
-        ],
-        ma: [],
-    };
-    return fields[prefix] || []
-}
-
-const getMostRecentYearData = (dataList, prefix) => {
+const getMostRecentYear = (dataList, prefix) => {
     const currentYear = new Date().getFullYear();
     const index = dataList.findIndex(data => +data.Year === currentYear);
 
     if (index > -1) {
         for (let i = index; index >= 0; i--) {
-            if (dataIsOk(dataList[i], getTimeSeriesFields(prefix))) return dataList[i];
+            if (dataIsOk(dataList[i], getTimeSeriesFields(prefix))) return dataList[i].Year;
         }
     }
-    return null;
+    return 0;
 }
 
 const dataIsOk = (data, fields) => {
@@ -217,10 +168,26 @@ const dataIsOk = (data, fields) => {
     return allOk;
 }
 
+const getTimeSeriesFields = (prefix) => {
+    const fields = {
+        fw: [
+            'Carnivora_index', 
+            'Chiroptera_index', 
+            'Eulipotyphla_index', 
+            'Primate_index',
+            'Rodentia_index',
+            'Artiodactyla_index'
+        ],
+        ma: [],
+    };
+    return fields[prefix] || []
+}
+
 module.exports = {
     getDataFromUrl,
     getXmlInfo,
     getInfoFromTxt,
     parseCsvToJSON,
-    getMostRecentData
+    getDataListSeries,
+    getMostRecentYear
 }

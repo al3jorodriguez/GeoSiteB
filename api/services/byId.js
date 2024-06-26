@@ -1,4 +1,11 @@
-const { getXmlInfo, getDataFromUrl, getInfoFromTxt, parseCsvToJSON, getMostRecentData } = require('./utils');
+const { 
+    getXmlInfo, 
+    getDataFromUrl, 
+    getInfoFromTxt, 
+    parseCsvToJSON, 
+    getDataListSeries,
+    getMostRecentYear
+ } = require('./utils');
 
 const server = 'https://os.zhdk.cloud.switch.ch/edna';
 
@@ -49,12 +56,10 @@ const getById = async(id) => {
                             acc['species'] = [{
                                 name: 'Soleidae',
                                 icon: `/assets/icons/cards/species/ma/soleidae.svg`,
-                                legend: '/assets/icons/charts/ma/soleidae.svg',
                                 quantity: '29'
                             }, {
                                 name: 'Acanthuridae',
                                 icon: `/assets/icons/cards/species/ma/acanthuridae.svg`,
-                                legend: '/assets/icons/charts/ma/acanthuridae.svg',
                                 quantity: '64'
                             }, {
                                 name: 'Lutjanidae',
@@ -64,50 +69,41 @@ const getById = async(id) => {
                             }, {
                                 name: 'Engraulidae',
                                 icon: `/assets/icons/cards/species/ma/engraulidae.svg`,
-                                legend: '/assets/icons/charts/ma/engraulidae.svg',
                                 quantity: '6'
                             }, {
                                 name: 'Sphyraenidae',
                                 icon: `/assets/icons/cards/species/ma/sphyraenidae.svg`,
-                                legend: '/assets/icons/charts/ma/sphyraenidae.svg',
                                 quantity: '121'
                             }, {
                                 name: 'Chaetodontidae',
                                 icon: `/assets/icons/cards/species/ma/chaetodontidae.svg`,
-                                legend: '/assets/icons/charts/ma/chaetodontidae.svg',
                                 quantity: '72'
                             }]
                         }
                         else if (prefix === 'fw') {
                             acc['species'] = [{
                                 name: 'Artiodactyla',
-                                icon: '/assets/icons/cards/species/fw/artiodactyla.svg',
-                                legend: '/assets/icons/charts/fw/artiodactyla.svg',
+                                icon: '/assets/icons/cards/species/fw/artiodactyla.svg',                                
                                 quantity: '29'
                             }, {
                                 name: 'Rodentia',
                                 icon: '/assets/icons/cards/species/fw/rodentia.svg',
-                                legend: '/assets/icons/charts/fw/rodentia.svg',
                                 quantity: '64'
                             }, {
                                 name: 'Primate',
                                 icon: '/assets/icons/cards/species/fw/primate.svg',
-                                legend: '/assets/icons/charts/fw/primate.svg',
                                 quantity: '43'
                             }, {
                                 name: 'Eulipotyphla',
                                 icon: '/assets/icons/cards/species/fw/eulipotyphla.svg',
-                                legend: '/assets/icons/charts/fw/eulipotyphla.svg',
                                 quantity: '6'
                             }, {
                                 name: 'Chiroptera',
                                 icon: '/assets/icons/cards/species/fw/chiroptera.svg',
-                                legend: '/assets/icons/charts/fw/chiroptera.svg',
                                 quantity: '121'
                             }, {
                                 name: 'Carnivora',
                                 icon: '/assets/icons/cards/species/fw/carnivora.svg',
-                                legend: '/assets/icons/charts/fw/carnivora.svg',
                                 quantity: '72'
                             }]
                         }
@@ -130,7 +126,24 @@ const getById = async(id) => {
                             acc['taxa'] = await parseCsvToJSON(`${server}/${current.Key}`);
                         }
                         if (file.includes('time_series')) {
-                            acc['timeSeries'] = await getMostRecentData(`${server}/${current.Key}`, prefix);
+                            const series = await getDataListSeries(`${server}/${current.Key}`)
+                            acc['time'] = {
+                                series,
+                                mostRecentYear: getMostRecentYear(series, prefix),
+                                legend: [{
+                                    name: 'Climate',
+                                    icon: '/assets/icons/charts/legend/time-series-changes/climate.svg',
+                                }, {
+                                    name: 'Vegetation',
+                                    icon: '/assets/icons/charts/legend/time-series-changes/vegetation.svg',
+                                }, {
+                                    name: 'Biodiversity',
+                                    icon: '/assets/icons/charts/legend/time-series-changes/biodiversity.svg',
+                                }, {
+                                    name: 'Human Activities',
+                                    icon: '/assets/icons/charts/legend/time-series-changes/human-activities.svg',
+                                }],
+                            };
                         }
                     }
                 }
