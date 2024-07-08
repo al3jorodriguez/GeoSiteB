@@ -57,21 +57,28 @@ const getList = async(txtKeys) => {
         return acc;
     }, {});
     /** Convert object into array */
-    const data = [];
+    const ma = [];
+    const fw = [];
     for (const key in obj) {
         if (obj[key]['geometry'] && obj[key]['img']) {
-            data.push({
+            const element = {
                 id: key,
                 img: obj[key]['img'],
                 info: obj[key]['info'],
                 geometry: obj[key]['geometry'],
                 prefix: obj[key]['prefix'],
                 species: obj[key]['species'],
-            });
+            }
+            if (obj[key]['prefix'] === 'ma') {
+                ma.push(element);
+            }
+            if (obj[key]['prefix'] === 'fw') {
+                fw.push(element);
+            }
         }
     }
     console.error(errors);
-    return data;
+    return [...ma, ...fw];
 }
 
 module.exports = {

@@ -18,8 +18,5 @@
     "memory-cache": "^0.2.0",
     "papaparse": "^5.4.1",
     "xml2js": "^0.6.2"
-  },
-  "devDependencies": {
-    "@types/node": "^20.12.12"
   }
 }
