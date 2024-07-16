@@ -88,10 +88,10 @@ router.get('/menu', async (req, res) => {
                     {
                         route: '/resources',
                         label: 'Resources',
-                        queryParams: { section: 'resources' },
+                        queryParams: { section: 'sinews' },
                     },
                     {
-                        route: '/publications',
+                        route: '/resources',
                         label: 'Publications',
                         queryParams: { section: 'publications' },
                     },

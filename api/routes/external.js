@@ -30,7 +30,9 @@ router.get('/list', async(req, res) => {
             'Title', 
             'Description.Typology',
             'Description.Geographic location',
-            'Description.Geographic Location'
+            'Description.Geographic Location',
+            'Description.geographic Location',
+            'Description.geographic location',
         ]);
         cache.put(key, list, CACHE_DURATION);
 

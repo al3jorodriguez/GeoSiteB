@@ -22,6 +22,8 @@ const getInfoFromTxt = async(url, txtKeys = []) => {
         'Climate',
         'Geographic location',
         'Geographic Location',
+        'geographic location',
+        'geographic Location',
         'Human activities',
         'Level of protection',
         'Levels of protection',
