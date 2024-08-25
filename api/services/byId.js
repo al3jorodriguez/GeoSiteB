@@ -4,7 +4,11 @@ const {
     getInfoFromTxt, 
     parseCsvToJSON, 
     getDataListSeries,
-    getMostRecentYear
+    getMostRecentYear,
+    getRichnessData,
+    getRichnessValue,
+    getIndexData,
+    getIndexValue
  } = require('./utils');
 
 const server = 'https://os.zhdk.cloud.switch.ch/edna';
@@ -48,66 +52,6 @@ const getById = async(id) => {
                 const extension = key[key.length -1].substring(key[key.length -1].lastIndexOf('.') + 1);
 
                 if (allExtensions.includes(extension.toLowerCase())) {
-                    if (!acc.hasOwnProperty('prefix')) {
-    
-                        acc['prefix'] = prefix;
-
-                        if (prefix === 'ma') {
-                            acc['species'] = [{
-                                name: 'Soleidae',
-                                icon: `/assets/icons/cards/species/ma/soleidae.svg`,
-                                quantity: '29'
-                            }, {
-                                name: 'Acanthuridae',
-                                icon: `/assets/icons/cards/species/ma/acanthuridae.svg`,
-                                quantity: '64'
-                            }, {
-                                name: 'Lutjanidae',
-                                icon: `/assets/icons/cards/species/ma/lutjanidae.svg`,
-                                legend: '/assets/icons/charts/ma/lutjanidae.svg',
-                                quantity: '43'
-                            }, {
-                                name: 'Engraulidae',
-                                icon: `/assets/icons/cards/species/ma/engraulidae.svg`,
-                                quantity: '6'
-                            }, {
-                                name: 'Sphyraenidae',
-                                icon: `/assets/icons/cards/species/ma/sphyraenidae.svg`,
-                                quantity: '121'
-                            }, {
-                                name: 'Chaetodontidae',
-                                icon: `/assets/icons/cards/species/ma/chaetodontidae.svg`,
-                                quantity: '72'
-                            }]
-                        }
-                        else if (prefix === 'fw') {
-                            acc['species'] = [{
-                                name: 'Artiodactyla',
-                                icon: '/assets/icons/cards/species/fw/artiodactyla.svg',                                
-                                quantity: '29'
-                            }, {
-                                name: 'Rodentia',
-                                icon: '/assets/icons/cards/species/fw/rodentia.svg',
-                                quantity: '64'
-                            }, {
-                                name: 'Primate',
-                                icon: '/assets/icons/cards/species/fw/primate.svg',
-                                quantity: '43'
-                            }, {
-                                name: 'Eulipotyphla',
-                                icon: '/assets/icons/cards/species/fw/eulipotyphla.svg',
-                                quantity: '6'
-                            }, {
-                                name: 'Chiroptera',
-                                icon: '/assets/icons/cards/species/fw/chiroptera.svg',
-                                quantity: '121'
-                            }, {
-                                name: 'Carnivora',
-                                icon: '/assets/icons/cards/species/fw/carnivora.svg',
-                                quantity: '72'
-                            }]
-                        }
-                    }
                     if (extension === 'json') {
                         const file = key[key.length -1];
                         if (!file.includes('points')) {
@@ -127,6 +71,7 @@ const getById = async(id) => {
                         }
                         if (file.includes('time_series')) {
                             const series = await getDataListSeries(`${server}/${current.Key}`)
+                            
                             acc['time'] = {
                                 series,
                                 mostRecentYear: getMostRecentYear(series, prefix),
@@ -144,6 +89,80 @@ const getById = async(id) => {
                                     icon: '/assets/icons/charts/legend/time-series-changes/human-activities.svg',
                                 }],
                             };
+                            if (!acc.hasOwnProperty('prefix')) {
+    
+                                acc['prefix'] = prefix;
+                                const richnessData = getRichnessData(series, prefix);
+                                const indexData = getIndexData(series, prefix);
+        
+                                if (prefix === 'ma') {
+                                    acc['species'] = [{
+                                        name: 'Planktonivores',
+                                        icon: `/assets/icons/cards/species/ma/soleidae.svg`,
+                                        quantity: getRichnessValue(richnessData, 'Planktonivores'),
+                                        index: getIndexValue(indexData, 'Planktonivores'),
+                                    }, {
+                                        name: 'Herbivores',
+                                        icon: `/assets/icons/cards/species/ma/acanthuridae.svg`,
+                                        quantity: getRichnessValue(richnessData, 'Herbivores'),
+                                        index: getIndexValue(indexData, 'Herbivores'),
+                                    }, {
+                                        name: 'Invertivores Scavengers',
+                                        icon: `/assets/icons/cards/species/ma/lutjanidae.svg`,
+                                        legend: '/assets/icons/charts/ma/lutjanidae.svg',
+                                        quantity: getRichnessValue(richnessData, 'Invertivores_scavengers'),
+                                        index: getIndexValue(indexData, 'Invertivores_scavengers'),
+                                    }, {
+                                        name: 'Omnivores',
+                                        icon: `/assets/icons/cards/species/ma/engraulidae.svg`,
+                                        quantity: getRichnessValue(richnessData, 'Omnivores'),
+                                        index: getIndexValue(indexData, 'Omnivores'),
+                                    }, {
+                                        name: 'Small Piscivores',
+                                        icon: `/assets/icons/cards/species/ma/sphyraenidae.svg`,
+                                        quantity: getRichnessValue(richnessData, 'Small_piscivores'),
+                                        index: getIndexValue(indexData, 'Small_piscivores'),
+                                    }, {
+                                        name: 'Large Piscivores',
+                                        icon: `/assets/icons/cards/species/ma/chaetodontidae.svg`,
+                                        quantity: getRichnessValue(richnessData, 'Large_piscivores'),
+                                        index: getIndexValue(indexData, 'Large_piscivores'),
+                                    }]
+                                }
+                                else if (prefix === 'fw') {
+                                    acc['species'] = [{
+                                        name: 'Artiodactyla',
+                                        icon: '/assets/icons/cards/species/fw/artiodactyla.svg',                                
+                                        quantity: getRichnessValue(richnessData, 'Artiodactyla'),
+                                        index: getIndexValue(indexData, 'Artiodactyla'),
+                                    }, {
+                                        name: 'Rodentia',
+                                        icon: '/assets/icons/cards/species/fw/rodentia.svg',
+                                        quantity: getRichnessValue(richnessData, 'Rodentia'),
+                                        index: getIndexValue(indexData, 'Rodentia'),
+                                    }, {
+                                        name: 'Primate',
+                                        icon: '/assets/icons/cards/species/fw/primate.svg',
+                                        quantity: getRichnessValue(richnessData, 'Primate'),
+                                        index: getIndexValue(indexData, 'Primate'),
+                                    }, {
+                                        name: 'Eulipotyphla',
+                                        icon: '/assets/icons/cards/species/fw/eulipotyphla.svg',
+                                        quantity: getRichnessValue(richnessData, 'Eulipotyphla'),
+                                        index: getIndexValue(indexData, 'Eulipotyphla'),
+                                    }, {
+                                        name: 'Chiroptera',
+                                        icon: '/assets/icons/cards/species/fw/chiroptera.svg',
+                                        quantity: getRichnessValue(richnessData, 'Chiroptera'),
+                                        index: getIndexValue(indexData, 'Chiroptera'),
+                                    }, {
+                                        name: 'Carnivora',
+                                        icon: '/assets/icons/cards/species/fw/carnivora.svg',
+                                        quantity: getRichnessValue(richnessData, 'Carnivora'),
+                                        index: getIndexValue(indexData, 'Carnivora171'),
+                                    }]
+                                }
+                            }
                         }
                     }
                 }

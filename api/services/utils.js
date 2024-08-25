@@ -1,195 +1,293 @@
-const axios = require('axios');
-const xmls2js = require('xml2js');
-const { parse } = require('papaparse');
+const axios = require("axios");
+const xmls2js = require("xml2js");
+const { parse } = require("papaparse");
 
-const server = 'https://os.zhdk.cloud.switch.ch/edna';
+const server = "https://os.zhdk.cloud.switch.ch/edna";
 
-const getXmlInfo = async() => {
-    const response = await axios.get(server);
-    return await xmls2js.parseStringPromise(response.data, {
-        explicitArray: false,
-        trim: true,
-    });
-}
+const getXmlInfo = async () => {
+  const response = await axios.get(server);
+  return await xmls2js.parseStringPromise(response.data, {
+    explicitArray: false,
+    trim: true,
+  });
+};
 
 const getDataFromUrl = async (url) => {
-    const response = await axios.get(url);
-    return response.data;
-}
+  const response = await axios.get(url);
+  return response.data;
+};
 
-const getInfoFromTxt = async(url, txtKeys = []) => {
-    const descriptionKeys = [
-        'Climate',
-        'Geographic location',
-        'Geographic Location',
-        'geographic location',
-        'geographic Location',
-        'Human activities',
-        'Level of protection',
-        'Levels of protection',
-        'Ecosystem and habitats',
-        'Marine ecosystem type and habitat',
-        'Sampling strategy',
-        'Typology',
-    ];
-    const descriptionKeysText = descriptionKeys.map(d=> `${d}:`);
+const getInfoFromTxt = async (url, txtKeys = []) => {
+  const descriptionKeys = [
+    "Climate",
+    "Geographic location",
+    "Geographic Location",
+    "geographic location",
+    "geographic Location",
+    "Human activities",
+    "Level of protection",
+    "Levels of protection",
+    "Ecosystem and habitats",
+    "Marine ecosystem type and habitat",
+    "Sampling strategy",
+    "Typology",
+  ];
+  const descriptionKeysText = descriptionKeys.map((d) => `${d}:`);
 
-    const textContent = await getDataFromUrl(url);
+  const textContent = await getDataFromUrl(url);
 
-    const lines = textContent.split('\n').filter(line => line.trim() !== '');
+  const lines = textContent.split("\n").filter((line) => line.trim() !== "");
 
-    const data = {};
+  const data = {};
 
-    lines.forEach(line => {
-        const [key, ...value] = line.split(':').map(item => item.trim());
+  lines.forEach((line) => {
+    const [key, ...value] = line.split(":").map((item) => item.trim());
 
-        /**
-         * not all elements have the same structure in the description.
-         * So, It's necessary to define one.
-         */
-        
-        if (value.length && keyInKeys(txtKeys, key)) {
-            if (key === 'Description') {
-                const content = value.join(": ");
-                data[key] = parseTxtInfo(content, descriptionKeysText, getChildrenFromKeys(txtKeys));
-            } else {
-                if (descriptionKeysText.includes(`${key}:`)) {
-                    const result = parseTxtInfo(value.join(": "), descriptionKeysText);
-                    data['Description'] = {
-                        ...data['Description'],
-                        ...result
-                    };
-                } else {
-                    data[key] = value[0];
-                }
-            }
+    /**
+     * not all elements have the same structure in the description.
+     * So, It's necessary to define one.
+     */
+
+    if (value.length && keyInKeys(txtKeys, key)) {
+      if (key === "Description") {
+        const content = value.join(": ");
+        data[key] = parseTxtInfo(
+          content,
+          descriptionKeysText,
+          getChildrenFromKeys(txtKeys)
+        );
+      } else {
+        if (descriptionKeysText.includes(`${key}:`)) {
+          const result = parseTxtInfo(value.join(": "), descriptionKeysText);
+          data["Description"] = {
+            ...data["Description"],
+            ...result,
+          };
+        } else {
+          data[key] = value[0];
         }
-    });
-    return data;
-}
+      }
+    }
+  });
+  return data;
+};
 
 const keyInKeys = (txtKeys, key) => {
-    for (const i of txtKeys) {
-        if (i.split('.')[0] === key) return true;
-    }
-    return false;
-}
+  for (const i of txtKeys) {
+    if (i.split(".")[0] === key) return true;
+  }
+  return false;
+};
 
 const getChildrenFromKeys = (txtKeys) => {
-    const keys = []
-    for (const i of txtKeys) {
-        const [_, child] = i.split('.')
-        if (child) keys.push(child);
-    }
-    return keys;
-}
+  const keys = [];
+  for (const i of txtKeys) {
+    const [_, child] = i.split(".");
+    if (child) keys.push(child);
+  }
+  return keys;
+};
 
 const parseTxtInfo = (content, descriptionKeys, only = []) => {
-    const keysIndex = [];
-    descriptionKeys.forEach(_key => {
-        const start = content.indexOf(_key);
-        if (start > -1) {
-            keysIndex.push({
-                key: _key,
-                start,
-                end: start + _key.length
-            });
-        }
-    });
-
-    const result = {};
-
-    for (const i of keysIndex) {
-        const target = i.end;
-        const elements = keysIndex.filter(element => element.start > target);
-
-        const key = i.key.replace(':', '');
-        if (elements.length) {
-            const closest = elements.reduce((prev, curr) => {
-                return (Math.abs(curr.start - target) < Math.abs(prev.start - target) ? curr : prev);
-            });
-            
-            if (only.length) {
-                if (only.includes(key)) {
-                    result[key.toLowerCase()] = content.substring(i.end, closest.start -1).trim();
-                }
-            } else {
-                result[key.toLowerCase()] = content.substring(i.end, closest.start -1).trim();
-            }
-        } else {
-            if (only.length) {
-                if (only.includes(key)) {
-                    result[key.toLowerCase()] = content.substring(i.end, content.length).trim();
-                }
-            }
-            else {
-                result[key.toLowerCase()] = content.substring(i.end, content.length).trim();
-            }
-        }
+  const keysIndex = [];
+  descriptionKeys.forEach((_key) => {
+    const start = content.indexOf(_key);
+    if (start > -1) {
+      keysIndex.push({
+        key: _key,
+        start,
+        end: start + _key.length,
+      });
     }
-    return result;
-}
+  });
 
-const parseCsvToJSON = async(resourceUrl) => { 
-    const csv = await axios.get(resourceUrl);
-    const { data } = parse(csv.data, {
-        header: true,
-        skipEmptyLines: true,
-    });
-    return data;
-}
+  const result = {};
 
-const getDataListSeries = async(resourceUrl) => {
-    return await parseCsvToJSON(resourceUrl);
-}
+  for (const i of keysIndex) {
+    const target = i.end;
+    const elements = keysIndex.filter((element) => element.start > target);
+
+    const key = i.key.replace(":", "");
+    if (elements.length) {
+      const closest = elements.reduce((prev, curr) => {
+        return Math.abs(curr.start - target) < Math.abs(prev.start - target)
+          ? curr
+          : prev;
+      });
+
+      if (only.length) {
+        if (only.includes(key)) {
+          result[key.toLowerCase()] = content
+            .substring(i.end, closest.start - 1)
+            .trim();
+        }
+      } else {
+        result[key.toLowerCase()] = content
+          .substring(i.end, closest.start - 1)
+          .trim();
+      }
+    } else {
+      if (only.length) {
+        if (only.includes(key)) {
+          result[key.toLowerCase()] = content
+            .substring(i.end, content.length)
+            .trim();
+        }
+      } else {
+        result[key.toLowerCase()] = content
+          .substring(i.end, content.length)
+          .trim();
+      }
+    }
+  }
+  return result;
+};
+
+const parseCsvToJSON = async (resourceUrl) => {
+  const csv = await axios.get(resourceUrl);
+  const { data } = parse(csv.data, {
+    header: true,
+    skipEmptyLines: true,
+  });
+  return data;
+};
+
+const getDataListSeries = async (resourceUrl) => {
+  return await parseCsvToJSON(resourceUrl);
+};
 
 const getMostRecentYear = (dataList, prefix) => {
-    const currentYear = new Date().getFullYear();
-    const index = dataList.findIndex(data => +data.Year === currentYear);
+  const currentYear = new Date().getFullYear();
+  const index = dataList.findIndex((data) => +data.Year === currentYear);
 
-    if (index > -1) {
-        for (let i = index; index >= 0; i--) {
-            if (dataIsOk(dataList[i], getTimeSeriesFields(prefix))) return dataList[i].Year;
-        }
+  if (index > -1) {
+    for (let i = index; index >= 0; i--) {
+      if (dataIsOk(dataList[i], getTimeSeriesFields(prefix)))
+        return dataList[i].Year;
     }
-    return 0;
-}
+  }
+  return 0;
+};
 
 const dataIsOk = (data, fields) => {
-    if (!fields.length) return false;
-    let allOk = true;
-    for (let i in data) {
-        if (fields.includes(i)) {
-            if (data[i] === 'NA') {
-                allOk = false;
-                break;
-            }
-
-        }
+  if (!fields.length) return false;
+  let allOk = true;
+  for (let i in data) {
+    if (fields.includes(i)) {
+      if (data[i] === "NA") {
+        allOk = false;
+        break;
+      }
     }
-    return allOk;
+  }
+  return allOk;
+};
+
+const getIndexData = (dataList, prefix) => {
+  const currentYear = new Date().getFullYear();
+  const index = dataList.findIndex((data) => +data.Year === currentYear);
+
+  if (index > -1) {
+    for (let i = index; index >= 0; i--) {
+      const filteredObject = {};
+      if (dataIsOk(dataList[i], getTimeSeriesFields(prefix))) {
+        const keysToInclude = getTimeSeriesFields(prefix);
+
+        for (const key in dataList[i]) {
+          if (keysToInclude.includes(key)) {
+            filteredObject[key] = dataList[i][key];
+          }
+        }
+      }
+      return filteredObject;
+    }
+  }
+  return 0;
+};
+
+const getIndexValue = (filteredObject, name) =>{
+  return filteredObject[Object.keys(filteredObject).filter((key) => key.includes(name))];
 }
 
 const getTimeSeriesFields = (prefix) => {
-    const fields = {
-        fw: [
-            'Carnivora_index', 
-            'Chiroptera_index', 
-            'Eulipotyphla_index', 
-            'Primate_index',
-            'Rodentia_index',
-            'Artiodactyla_index'
-        ],
-        ma: [],
-    };
-    return fields[prefix] || []
+  const fields = {
+    fw: [
+      "Carnivora_index",
+      "Chiroptera_index",
+      "Eulipotyphla_index",
+      "Primate_index",
+      "Rodentia_index",
+      "Artiodactyla_index",
+    ],
+    ma: [
+      "Planktonivores_index",
+      "Herbivores_index",
+      "Invertivores_scavengers_index",
+      "Omnivores_index",
+      "Small_piscivores_index",
+      "Large_piscivores_index",
+    ],
+  };
+  return fields[prefix] || [];
+};
+
+const getRichnessData = (dataList, prefix) => {
+  const currentYear = new Date().getFullYear();
+  const index = dataList.findIndex((data) => +data.Year === currentYear);
+
+  if (index > -1) {
+    for (let i = index; index >= 0; i--) {
+      const filteredObject = {};
+      if (dataIsOk(dataList[i], getRichnessFields(prefix))) {
+        const keysToInclude = getRichnessFields(prefix);
+
+        for (const key in dataList[i]) {
+          if (keysToInclude.includes(key)) {
+            filteredObject[key] = dataList[i][key];
+          }
+        }
+      }
+      return filteredObject;
+    }
+  }
+  return 0;
+};
+
+const getRichnessValue = (filteredObject, name) =>{
+    return filteredObject[Object.keys(filteredObject).filter((key) => key.includes(name))];
 }
 
+const getRichnessFields = (prefix) => {
+  const fields = {
+    fw: [
+      "Carnivora_richness",
+      "Chiroptera_richness",
+      "Eulipotyphla_richness",
+      "Primate_richness",
+      "Rodentia_richness",
+      "Artiodactyla_richness",
+    ],
+    ma: [
+      "Planktonivores",
+      "Herbivores",
+      "Invertivores_scavengers",
+      "Omnivores",
+      "Small_piscivores",
+      "Large_piscivores",
+    ],
+  };
+  return fields[prefix] || [];
+};
+
 module.exports = {
-    getDataFromUrl,
-    getXmlInfo,
-    getInfoFromTxt,
-    parseCsvToJSON,
-    getDataListSeries,
-    getMostRecentYear
-}
+  getDataFromUrl,
+  getXmlInfo,
+  getInfoFromTxt,
+  parseCsvToJSON,
+  getDataListSeries,
+  getMostRecentYear,
+  getRichnessData,
+  getRichnessValue,
+  getIndexData,
+  getIndexValue
+};
