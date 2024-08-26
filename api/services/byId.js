@@ -159,7 +159,7 @@ const getById = async(id) => {
                                         name: 'Carnivora',
                                         icon: '/assets/icons/cards/species/fw/carnivora.svg',
                                         quantity: getRichnessValue(richnessData, 'Carnivora'),
-                                        index: getIndexValue(indexData, 'Carnivora171'),
+                                        index: getIndexValue(indexData, 'Carnivora'),
                                     }]
                                 }
                             }
