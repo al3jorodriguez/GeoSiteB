@@ -12,13 +12,15 @@ const getList = async(txtKeys) => {
 
     const obj = await xml.ListBucketResult.Contents.reduce(async(accPromise, current) => {
         const acc = await accPromise;
+        /** Folder is not empty */
         if (+current.Size > 0) {
 
             const key = current.Key.split('/');
             const extension = key[key.length -1].substring(key[key.length -1].lastIndexOf('.') + 1);
 
             const number = current.Key.match(/\d+/);
-            if (number && number.length && number?.[0].length >= 6) { // id is valid
+            // condition to check if id is valid (ids with length > 6)
+            if (number && number.length && number?.[0].length >= 6) {
                 if (!acc.hasOwnProperty(number[0])) acc[number[0]] = {};
 
                 if (!acc[number[0]].hasOwnProperty('prefix')) {

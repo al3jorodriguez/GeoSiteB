@@ -79,6 +79,12 @@ const keyInKeys = (txtKeys, key) => {
   return false;
 };
 
+/**
+ * get children from keys of type parent.child
+ * example (Description.Climate)
+ * @param {string[]} txtKeys
+ * @returns
+ */
 const getChildrenFromKeys = (txtKeys) => {
   const keys = [];
   for (const i of txtKeys) {
@@ -88,6 +94,13 @@ const getChildrenFromKeys = (txtKeys) => {
   return keys;
 };
 
+/**
+ *
+ * @param {string} content
+ * @param {string[]} descriptionKeys
+ * @param {string[]} only
+ * @returns
+ */
 const parseTxtInfo = (content, descriptionKeys, only = []) => {
   const keysIndex = [];
   descriptionKeys.forEach((_key) => {
@@ -161,7 +174,7 @@ const getMostRecentYear = (dataList, prefix) => {
   const index = dataList.findIndex((data) => +data.Year === currentYear);
 
   if (index > -1) {
-    for (let i = index; index >= 0; i--) {
+    for (let i = index; i >= 0; i--) {
       if (dataIsOk(dataList[i], getTimeSeriesFields(prefix)))
         return dataList[i].Year;
     }
@@ -183,32 +196,6 @@ const dataIsOk = (data, fields) => {
   return allOk;
 };
 
-const getIndexData = (dataList, prefix) => {
-  const currentYear = new Date().getFullYear();
-  const index = dataList.findIndex((data) => +data.Year === currentYear);
-
-  if (index > -1) {
-    for (let i = index; index >= 0; i--) {
-      const filteredObject = {};
-      if (dataIsOk(dataList[i], getTimeSeriesFields(prefix))) {
-        const keysToInclude = getTimeSeriesFields(prefix);
-
-        for (const key in dataList[i]) {
-          if (keysToInclude.includes(key)) {
-            filteredObject[key] = dataList[i][key];
-          }
-        }
-      }
-      return filteredObject;
-    }
-  }
-  return 0;
-};
-
-const getIndexValue = (filteredObject, name) =>{
-  return filteredObject[Object.keys(filteredObject).filter((key) => key.includes(name))];
-}
-
 const getTimeSeriesFields = (prefix) => {
   const fields = {
     fw: [
@@ -224,56 +211,8 @@ const getTimeSeriesFields = (prefix) => {
       "Herbivores_index",
       "Invertivores_scavengers_index",
       "Omnivores_index",
-      "Small_piscivores_index",
       "Large_piscivores_index",
-    ],
-  };
-  return fields[prefix] || [];
-};
-
-const getRichnessData = (dataList, prefix) => {
-  const currentYear = new Date().getFullYear();
-  const index = dataList.findIndex((data) => +data.Year === currentYear);
-
-  if (index > -1) {
-    for (let i = index; index >= 0; i--) {
-      const filteredObject = {};
-      if (dataIsOk(dataList[i], getRichnessFields(prefix))) {
-        const keysToInclude = getRichnessFields(prefix);
-
-        for (const key in dataList[i]) {
-          if (keysToInclude.includes(key)) {
-            filteredObject[key] = dataList[i][key];
-          }
-        }
-      }
-      return filteredObject;
-    }
-  }
-  return 0;
-};
-
-const getRichnessValue = (filteredObject, name) =>{
-    return filteredObject[Object.keys(filteredObject).filter((key) => key.includes(name))];
-}
-
-const getRichnessFields = (prefix) => {
-  const fields = {
-    fw: [
-      "Carnivora_richness",
-      "Chiroptera_richness",
-      "Eulipotyphla_richness",
-      "Primate_richness",
-      "Rodentia_richness",
-      "Artiodactyla_richness",
-    ],
-    ma: [
-      "Planktonivores",
-      "Herbivores",
-      "Invertivores_scavengers",
-      "Omnivores",
-      "Small_piscivores",
-      "Large_piscivores",
+      "Small_piscivores_index",
     ],
   };
   return fields[prefix] || [];
@@ -286,8 +225,4 @@ module.exports = {
   parseCsvToJSON,
   getDataListSeries,
   getMostRecentYear,
-  getRichnessData,
-  getRichnessValue,
-  getIndexData,
-  getIndexValue
 };

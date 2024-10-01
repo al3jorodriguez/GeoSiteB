@@ -4,11 +4,7 @@ const {
     getInfoFromTxt, 
     parseCsvToJSON, 
     getDataListSeries,
-    getMostRecentYear,
-    getRichnessData,
-    getRichnessValue,
-    getIndexData,
-    getIndexValue
+    getMostRecentYear
  } = require('./utils');
 
 const server = 'https://os.zhdk.cloud.switch.ch/edna';
@@ -16,6 +12,7 @@ const server = 'https://os.zhdk.cloud.switch.ch/edna';
 const imgExtensions = ['jpg', 'png', 'jpeg'];
 const fileExtensions = ['txt', 'json', 'csv'];
 const allExtensions = [...imgExtensions, ...fileExtensions];
+
 
 const getById = async(id) => {
     const xml = await getXmlInfo();
@@ -42,135 +39,111 @@ const getById = async(id) => {
         'Level of protection',
         'Levels of protection'
     ];
-    return await xml.ListBucketResult.Contents.reduce(async(accPromise, current) => {
-        const acc = await accPromise;
+    const queries = [];
+    const keys = [];
+    const result = {};
+    xml.ListBucketResult.Contents.forEach(current => {
         if (+current.Size > 0) {
             const number = current.Key.match(/\d+/);
             if(number?.[0] === id) {
                 const key = current.Key.split('/');
-                const [ prefix ] = key?.[0]?.split('_') || 'default';
+                const [ prefix ] = key?.[0]?.split('_');
                 const extension = key[key.length -1].substring(key[key.length -1].lastIndexOf('.') + 1);
-
+                // evaluates if extension is valid
                 if (allExtensions.includes(extension.toLowerCase())) {
+                    // set group if it has one
+                    if (!result.hasOwnProperty('prefix') && prefix) result['prefix'] = prefix;
+
+                    //get information from id
                     if (extension === 'json') {
                         const file = key[key.length -1];
                         if (!file.includes('points')) {
-                            acc['geometry'] = await getDataFromUrl(`${server}/${current.Key}`);
+                            queries.push(getDataFromUrl(`${server}/${current.Key}`));
+                            keys.push('geometry');
                         }
                     }
+
                     if (extension === 'txt') {
-                        acc['info'] = await getInfoFromTxt(`${server}/${current.Key}`, allowedtxtKeys);
+                        queries.push(getInfoFromTxt(`${server}/${current.Key}`, allowedtxtKeys));
+                        keys.push('info');
                     }
+
                     if (imgExtensions.includes(extension.toLowerCase())) {
-                        acc['img'] = `${server}/${current.Key}`;
+                        result['img'] = `${server}/${current.Key}`;
                     }
+
                     if (extension === 'csv') {
                         const file = key[key.length -1];
+                        /** mammal species info */
                         if (file.includes('taxa')) {
-                            acc['taxa'] = await parseCsvToJSON(`${server}/${current.Key}`);
+                            queries.push(parseCsvToJSON(`${server}/${current.Key}`));
+                            keys.push('taxa');
                         }
+                        /** time series line chart */
                         if (file.includes('time_series')) {
-                            const series = await getDataListSeries(`${server}/${current.Key}`)
-                            
-                            acc['time'] = {
-                                series,
-                                mostRecentYear: getMostRecentYear(series, prefix),
-                                legend: [{
-                                    name: 'Climate',
-                                    icon: '/assets/icons/charts/legend/time-series-changes/climate.svg',
-                                }, {
-                                    name: 'Vegetation',
-                                    icon: '/assets/icons/charts/legend/time-series-changes/vegetation.svg',
-                                }, {
-                                    name: 'Biodiversity',
-                                    icon: '/assets/icons/charts/legend/time-series-changes/biodiversity.svg',
-                                }, {
-                                    name: 'Human Activities',
-                                    icon: '/assets/icons/charts/legend/time-series-changes/human-activities.svg',
-                                }],
-                            };
-                            if (!acc.hasOwnProperty('prefix')) {
-    
-                                acc['prefix'] = prefix;
-                                const richnessData = getRichnessData(series, prefix);
-                                const indexData = getIndexData(series, prefix);
-        
-                                if (prefix === 'ma') {
-                                    acc['species'] = [{
-                                        name: 'Planktonivores',
-                                        icon: `/assets/icons/cards/species/ma/soleidae.svg`,
-                                        quantity: getRichnessValue(richnessData, 'Planktonivores'),
-                                        index: getIndexValue(indexData, 'Planktonivores'),
-                                    }, {
-                                        name: 'Herbivores',
-                                        icon: `/assets/icons/cards/species/ma/acanthuridae.svg`,
-                                        quantity: getRichnessValue(richnessData, 'Herbivores'),
-                                        index: getIndexValue(indexData, 'Herbivores'),
-                                    }, {
-                                        name: 'Invertivores Scavengers',
-                                        icon: `/assets/icons/cards/species/ma/lutjanidae.svg`,
-                                        legend: '/assets/icons/charts/ma/lutjanidae.svg',
-                                        quantity: getRichnessValue(richnessData, 'Invertivores_scavengers'),
-                                        index: getIndexValue(indexData, 'Invertivores_scavengers'),
-                                    }, {
-                                        name: 'Omnivores',
-                                        icon: `/assets/icons/cards/species/ma/engraulidae.svg`,
-                                        quantity: getRichnessValue(richnessData, 'Omnivores'),
-                                        index: getIndexValue(indexData, 'Omnivores'),
-                                    }, {
-                                        name: 'Small Piscivores',
-                                        icon: `/assets/icons/cards/species/ma/sphyraenidae.svg`,
-                                        quantity: getRichnessValue(richnessData, 'Small_piscivores'),
-                                        index: getIndexValue(indexData, 'Small_piscivores'),
-                                    }, {
-                                        name: 'Large Piscivores',
-                                        icon: `/assets/icons/cards/species/ma/chaetodontidae.svg`,
-                                        quantity: getRichnessValue(richnessData, 'Large_piscivores'),
-                                        index: getIndexValue(indexData, 'Large_piscivores'),
-                                    }]
-                                }
-                                else if (prefix === 'fw') {
-                                    acc['species'] = [{
-                                        name: 'Artiodactyla',
-                                        icon: '/assets/icons/cards/species/fw/artiodactyla.svg',                                
-                                        quantity: getRichnessValue(richnessData, 'Artiodactyla'),
-                                        index: getIndexValue(indexData, 'Artiodactyla'),
-                                    }, {
-                                        name: 'Rodentia',
-                                        icon: '/assets/icons/cards/species/fw/rodentia.svg',
-                                        quantity: getRichnessValue(richnessData, 'Rodentia'),
-                                        index: getIndexValue(indexData, 'Rodentia'),
-                                    }, {
-                                        name: 'Primate',
-                                        icon: '/assets/icons/cards/species/fw/primate.svg',
-                                        quantity: getRichnessValue(richnessData, 'Primate'),
-                                        index: getIndexValue(indexData, 'Primate'),
-                                    }, {
-                                        name: 'Eulipotyphla',
-                                        icon: '/assets/icons/cards/species/fw/eulipotyphla.svg',
-                                        quantity: getRichnessValue(richnessData, 'Eulipotyphla'),
-                                        index: getIndexValue(indexData, 'Eulipotyphla'),
-                                    }, {
-                                        name: 'Chiroptera',
-                                        icon: '/assets/icons/cards/species/fw/chiroptera.svg',
-                                        quantity: getRichnessValue(richnessData, 'Chiroptera'),
-                                        index: getIndexValue(indexData, 'Chiroptera'),
-                                    }, {
-                                        name: 'Carnivora',
-                                        icon: '/assets/icons/cards/species/fw/carnivora.svg',
-                                        quantity: getRichnessValue(richnessData, 'Carnivora'),
-                                        index: getIndexValue(indexData, 'Carnivora'),
-                                    }]
-                                }
-                            }
+                            queries.push(getDataListSeries(`${server}/${current.Key}`));
+                            keys.push('time');
                         }
                     }
                 }
+                
             }
         }
-        return acc;
-    }, {});
+    });
+
+    const data = await Promise.all(queries);
+
+    // info to show species info
+    const prefixes = {
+        ma: ['Planktonivores', 'Herbivores', 'Invertivores_scavengers', 'Omnivores', 'Large_piscivores', 'Small_piscivores'],
+        fw: ['Artiodactyla', 'Rodentia', 'Primate', 'Eulipotyphla', 'Chiroptera', 'Carnivora']
+    };
+
+    // time series line chart legend
+    const legend = {
+        ma: ['Climate', 'Productivity', 'Biodiversity', 'Human Activities'],
+        fw: ['Climate', 'Vegetation', 'Biodiversity', 'Human Activities'],
+    }
+
+    if (result.prefix) {
+
+        result['species'] = [];
+        for (const p of prefixes?.[result.prefix] || []) {
+            result['species'].push({
+                name: p,
+                icon: `/assets/icons/cards/species/${result.prefix}/${p.toLowerCase()}.svg`,
+                quantity: '--' // search value
+            })
+        }
+        
+        for (const [index, d] of data.entries()) {
+            if (keys[index] !== 'time') {
+                result[keys[index]] = d;
+            } else {
+                const mostRecentYear = getMostRecentYear(d, result.prefix);
+                result[keys[index]] = {
+                    series: d,
+                    mostRecentYear,
+                    legend: legend[result.prefix].map(l =>({
+                        name: l,
+                        icon: `/assets/icons/charts/legend/time-series-changes/${l.toLocaleLowerCase().trim().replace(' ', '-')}.svg`
+                    }))
+                };
+
+                const dataYear = d.find(_d => _d.Year == mostRecentYear);
+
+                result.species = result.species.map(specie => ({
+                    ...specie,
+                    quantity: dataYear?.[`${specie.name}_index`] || '--'
+                }));
+            }
+        }
+    }
+
+    return result;
 }
+
+
 
 module.exports = {
     getById
