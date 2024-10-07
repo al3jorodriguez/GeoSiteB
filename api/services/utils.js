@@ -199,14 +199,22 @@ const dataIsOk = (data, fields) => {
 const getTimeSeriesFields = (prefix) => {
   const fields = {
     fw: [
-      "Carnivora_index",
-      "Chiroptera_index",
+      "Carnivores_index",
+      "Chiropteres_index",
       "Eulipotyphla_index",
-      "Primate_index",
-      "Rodentia_index",
+      "Primates_index",
+      "Rodents_index",
       "Artiodactyla_index",
     ],
     ma: [
+      "Planktonivores_index",
+      "Herbivores_index",
+      "Invertivores_scavengers_index",
+      "Omnivores_index",
+      "Large_piscivores_index",
+      "Small_piscivores_index",
+    ],
+    fw_: [
       "Planktonivores_index",
       "Herbivores_index",
       "Invertivores_scavengers_index",
