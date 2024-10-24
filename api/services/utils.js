@@ -2,7 +2,8 @@ const axios = require("axios");
 const xmls2js = require("xml2js");
 const { parse } = require("papaparse");
 
-const server = "https://os.zhdk.cloud.switch.ch/edna";
+//const server = "https://os.zhdk.cloud.switch.ch/edna";
+const server = "https://os.zhdk.cloud.switch.ch/edna/?max-keys=10000000";
 
 const getXmlInfo = async () => {
   const response = await axios.get(server);
