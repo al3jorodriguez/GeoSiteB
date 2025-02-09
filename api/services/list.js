@@ -26,27 +26,23 @@ const getList = async (lang) => {
   const xml = await getXmlInfo();
 
   const errors = [];
-  let array_ = [];
-  let result = [];
-  const keys = [];
 
   const obj = await xml.ListBucketResult.Contents.reduce(
     async (accPromise, current) => {
       const acc = await accPromise;
       /** Folder is not empty */
-      array_.push(current);
-      /* if (current.Key.includes("1110009240")) {
-        console.log("aqui");
-      } */
       if (+current.Size > 0) {
         const key = current.Key.split("/");
         const extension = key[key.length - 1].substring(
           key[key.length - 1].lastIndexOf(".") + 1
         );
 
-        const number = current.Key.match(/\d+/);
+        //const number = current.Key.match(/\d+/);
+        const numbers = current.Key.match(/\d+/g);
+        const lastNumber = numbers ? numbers[numbers.length - 1] : null;
+        const number = [lastNumber];
         // condition to check if id is valid (ids with length > 6)
-        if (number && number.length && number?.[0].length >= 6) {
+        if (number && number.length && number[0]?.length >= 6) {
           if (!acc.hasOwnProperty(number[0])) acc[number[0]] = {};
 
           /**only elements with image are shown */
@@ -96,16 +92,12 @@ const getList = async (lang) => {
                 acc[number[0]]["info"][lang][txtKeys[1].split(".")[0]] !=
                   undefined
               ) {
-                //console.log(acc[number[0]]);
                 acc[number[0]]["prefix"] =
                   prefixes[lang][
                     acc[number[0]]["info"][lang][txtKeys[1].split(".")[0]][
                       txtKeys[1].split(".")[1].toLowerCase()
                     ]
                   ];
-                //console.log(key[2] + "," + acc[number[0]]["info"][txtKeys[1].split(".")[0]][txtKeys[1].split(".")[1].toLowerCase()]);
-                //console.log(acc[number[0]]);
-                //console.log(acc[number[0]]["prefix"]);
               }
             }
           }
@@ -165,15 +157,11 @@ const getList = async (lang) => {
     {}
   );
   /** Convert object into array */
-  //console.log(array_);
   const ma = [];
   const fw = [];
   const fw_ = [];
   for (const key in obj) {
     if (obj[key]["geometry"] && obj[key]["img"] && obj[key]["info"]) {
-      //console.log(`${key}_${obj[key]["prefix"]}`);
-      //console.log(`${key}_${obj[key]["prefix"]}, ${lang}`);
-      //console.log(obj[key]["icon"]);
       const element = {
         id: key,
         img: obj[key]["img"],

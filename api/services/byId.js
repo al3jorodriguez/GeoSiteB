@@ -5,7 +5,7 @@ const {
   parseCsvToJSON,
   getDataListSeries,
   findLastYearWithValues,
-  sumSimilarKeysByYear
+  sumSimilarKeysByYear,
 } = require("./utils");
 
 const server = "https://os.zhdk.cloud.switch.ch/edna";
@@ -45,7 +45,10 @@ const getById = async (id, lang) => {
   const result = {};
   xml.ListBucketResult.Contents.forEach((current) => {
     if (+current.Size > 0) {
-      const number = current.Key.match(/\d+/);
+      //const number = current.Key.match(/\d+/);
+      const numbers = current.Key.match(/\d+/g);
+      const lastNumber = numbers ? numbers[numbers.length - 1] : null;
+      const number = [lastNumber];
       if (number?.[0] === id) {
         const key = current.Key.split("/");
         const [prefix] = key?.[0]?.split("_");
@@ -133,9 +136,9 @@ const getById = async (id, lang) => {
 
   // time series line chart legend
   const legend = {
-    fw: ["Climate", "Human", "Vegetation", "Integrity_index"],
-    fw_: ["Climate", "Human", "Vegetation", "Integrity_index"],
-    ma: ["Climate", "Human", "Vegetation", "Integrity_index"],
+    fw: ["Climate", "Human", "Vegetation", "Integrity index"],
+    fw_: ["Climate", "Human", "Vegetation", "Integrity index"],
+    ma: ["Climate", "Human", "Vegetation", "Integrity index"],
   };
 
   const langLargeRiver = {
@@ -144,7 +147,9 @@ const getById = async (id, lang) => {
     fr: "Grande rivière.",
   };
 
-  const dataKeys = legend[result.prefix].map( d => !d.includes('Integrity') ? d + "_intercept" : d);
+  const dataKeys = legend[result.prefix].map((d) =>
+    !d.includes("Integrity") ? d + "_intercept" : d
+  );
 
   if (result.prefix) {
     if (data[0][lang].Description.typology == langLargeRiver[lang]) {
@@ -161,24 +166,24 @@ const getById = async (id, lang) => {
       });
     }
     // Definir grupos de llaves a sumar
-const keyGroups = {
-  Climate_total: ['Climate_intercept', 'Climate_change'],
-  Vegetation_total: ['Vegetation_intercept', 'Vegetation_change'],
-  Human_total: ['Human_intercept', 'Human_change']
-};
+    const keyGroups = {
+      Climate_total: ["Climate_intercept", "Climate_change"],
+      Vegetation_total: ["Vegetation_intercept", "Vegetation_change"],
+      Human_total: ["Human_intercept", "Human_change"],
+    };
 
-for (const [index, d] of data.entries()) {
-  if (keys[index] !== "time") {
-    result[keys[index]] = d;
-  } else {
+    for (const [index, d] of data.entries()) {
+      if (keys[index] !== "time") {
+        result[keys[index]] = d;
+      } else {
         const total = sumSimilarKeysByYear(d, keyGroups);
         const speciesHeader = result.prefix === "ma" ? "" : "_richness";
-        const mostRecentYearLine = findLastYearWithValues(d, dataKeys )
-        let mostRecentYear = findLastYearWithValues(
-          d,
-          [`${prefixes[result.prefix][0]}${speciesHeader}`]
-        );
-        mostRecentYear = mostRecentYear === null ? mostRecentYearLine : mostRecentYear;
+        const mostRecentYearLine = findLastYearWithValues(d, dataKeys);
+        let mostRecentYear = findLastYearWithValues(d, [
+          `${prefixes[result.prefix][0]}${speciesHeader}`,
+        ]);
+        mostRecentYear =
+          mostRecentYear === null ? mostRecentYearLine : mostRecentYear;
         result[keys[index]] = {
           series: total,
           mostRecentYear,
@@ -193,7 +198,6 @@ for (const [index, d] of data.entries()) {
         };
 
         const dataYear = d.find((_d) => _d.Year == mostRecentYear);
-
 
         result.species = result.species.map((specie) => ({
           ...specie,
