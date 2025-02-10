@@ -106,6 +106,34 @@ const getById = async (id, lang) => {
 
   const data = await Promise.all(queries);
 
+  // Mapeo de nombres incorrectos a correctos en las claves
+  const speciesMapping = {
+    Carnivora_index: "Carnivores_index",
+    Carnivora_richness: "Carnivores_richness",
+  };
+
+  // Función para renombrar claves en cada objeto del array `d`
+  const normalizeSpeciesKeys = (dataArray) => {
+    return dataArray.map((entry) => {
+      const updatedEntry = {};
+
+      for (const key in entry) {
+        let newKey = key;
+
+        // Si la clave contiene una especie a reemplazar, la cambiamos
+        Object.keys(speciesMapping).forEach((wrongName) => {
+          if (key.includes(wrongName)) {
+            newKey = key.replace(wrongName, speciesMapping[wrongName]);
+          }
+        });
+
+        updatedEntry[newKey] = entry[key]; // Mantiene los valores originales
+      }
+
+      return updatedEntry;
+    });
+  };
+
   // info to show species info
   const prefixes = {
     ma: [
@@ -176,10 +204,14 @@ const getById = async (id, lang) => {
       if (keys[index] !== "time") {
         result[keys[index]] = d;
       } else {
-        const total = sumSimilarKeysByYear(d, keyGroups);
-        const speciesHeader = result.prefix === "ma" ? "" : "_richness";
-        const mostRecentYearLine = findLastYearWithValues(d, dataKeys);
-        let mostRecentYear = findLastYearWithValues(d, [
+        const normalizedD = normalizeSpeciesKeys(d); // Reemplaza "Carnivora" en `d`
+        const total = sumSimilarKeysByYear(normalizedD, keyGroups);
+        const speciesHeader = result.prefix === "ma" || result.prefix === "fw_" ? "" : "_richness";
+        const mostRecentYearLine = findLastYearWithValues(
+          normalizedD,
+          dataKeys
+        );
+        let mostRecentYear = findLastYearWithValues(normalizedD, [
           `${prefixes[result.prefix][0]}${speciesHeader}`,
         ]);
         mostRecentYear =
@@ -197,7 +229,9 @@ const getById = async (id, lang) => {
           })),
         };
 
-        const dataYear = d.find((_d) => _d.Year == mostRecentYear);
+        const dataYear = normalizedD.find((_d) => {
+          return _d.Year == mostRecentYear;
+        });
 
         result.species = result.species.map((specie) => ({
           ...specie,
