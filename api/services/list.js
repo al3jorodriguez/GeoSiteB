@@ -110,11 +110,11 @@ const getList = async (lang) => {
                 "Integrity_index",
               ]);
               const dataYear = data.find((_d) => _d.Year == mostRecentYear);
+              acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
+              /*
               if (dataYear != undefined) {
                 acc[number[0]]["integrity_index"] = dataYear.Integrity_index;
                 let integrityIndex = acc[number[0]]["integrity_index"];
-                acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
-                /*
                 if (integrityIndex >= 0 && integrityIndex <= 0.2) {
                   acc[number[0]]["icon"] = "/assets/icons/map/point_red.svg";
                 } else if (integrityIndex > 0.2 && integrityIndex <= 0.4) {
@@ -126,12 +126,11 @@ const getList = async (lang) => {
                 } else {
                   acc[number[0]]["icon"] = "/assets/icons/map/point_gray.svg"; // Fallback en caso de error
                 }
-                  */
               } else {
                 acc[number[0]]["integrity_index"] = null;
-                //acc[number[0]]["icon"] = "/assets/icons/map/point_gray.svg"; // Fallback en caso de error
-                acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
+                acc[number[0]]["icon"] = "/assets/icons/map/point_gray.svg"; // Fallback en caso de error
               }
+                */
             }
           }
 
