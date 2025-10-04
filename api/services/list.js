@@ -129,7 +129,8 @@ const getList = async (lang) => {
                   */
               } else {
                 acc[number[0]]["integrity_index"] = null;
-                acc[number[0]]["icon"] = "/assets/icons/map/point_gray.svg"; // Fallback en caso de error
+                //acc[number[0]]["icon"] = "/assets/icons/map/point_gray.svg"; // Fallback en caso de error
+                acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
               }
             }
           }
