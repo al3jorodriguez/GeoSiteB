@@ -104,13 +104,13 @@ const getList = async (lang) => {
           /** time series*/
           if (extension === "csv") {
             let type = key[key.length - 1];
+            acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
             if (type.includes("time_series")) {
               const data = await getDataListSeries(`${server}/${current.Key}`);
               let mostRecentYear = findLastYearWithValues(data, [
                 "Integrity_index",
               ]);
               const dataYear = data.find((_d) => _d.Year == mostRecentYear);
-              acc[number[0]]["icon"] = "/assets/icons/map/point_green.svg";
               /*
               if (dataYear != undefined) {
                 acc[number[0]]["integrity_index"] = dataYear.Integrity_index;
